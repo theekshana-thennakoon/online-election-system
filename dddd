@@ -1,0 +1,160 @@
+<?php
+session_start();
+?>
+<?php
+require("sms/send_sms_impl.php");
+include('database.php');
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sri Lanka Election</title>
+
+    <!-- font awesome cdn link  -->
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+-->
+    <!-- custom css file link  -->
+	
+	<link href="assets/css/styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/style.css">
+   <style>
+    .inputBox select , .inputBox input{padding:1rem;font-size: 1.7rem;background:#f7f7f7;text-transform: none;margin:1rem 0;border:.1rem solid rgba(0,0,0,.3);width: 49%;}
+    .hdn{display:none;}
+    .header-1 img{width:30%;}
+    @media (max-width: 739px) {
+        .contact{display: flex;min-height: 80%;align-items: center;justify-content: center;}
+        .hdn{display:block;}
+	    .header-1 img{width:80%;}
+	    .home .image{display:none;}
+    } 
+    </style>
+</head>
+<body>
+<script src="sweetalert.min.js"></script>
+
+<!-- header section starts  -->
+<?php
+    if(isset($_POST['gtotp'])){
+        $_SESSION['nic'] = $_POST['nic'];
+        $_SESSION['fnamewithint'] = $_POST['fnamewithint'];
+        $_SESSION['genderslct'] = $_POST['genderslct'];
+        $_SESSION['districtslct'] = $_POST['districtslct'];
+        $_SESSION['mobile'] = $_POST['mobile'];
+        $_SESSION['address'] = nl2br($_POST['address']);
+        $nic = $_SESSION['nic'];
+
+
+        if(strlen($_SESSION['mobile']) > 11 || strlen($_SESSION['mobile']) < 9){
+            $_SESSION['checkContact'] = 0;
+            echo "<script>window.history.back()</script>";
+        }
+        else if(strlen($_SESSION['mobile']) == 11){
+            $fnum2 = $_SESSION['mobile']['0'] . $_SESSION['mobile']['1'];
+            if ($fnum2 == '94'){
+                $mobile = '';
+                for ($noi = 2;$noi < strlen($_SESSION['mobile']);$noi++){
+                    $mobile .= $_SESSION['mobile'][$noi];
+                }
+            }
+            else{
+                $_SESSION['checkContact'] = 0;
+                echo "<script>window.history.back()</script>";
+            }
+        }
+        else if(strlen($_SESSION['mobile']) == 10){
+            $mobile = '';
+            for ($noi = 1;$noi < strlen($_SESSION['mobile']);$noi++){
+                $mobile .= $_SESSION['mobile'][$noi];
+            }
+        }
+        else if(strlen($_SESSION['mobile']) == 9){
+            $mobile = $_SESSION['mobile'];
+        }
+        else{
+            $_SESSION['checkContact'] = 0;
+            echo "<script>window.history.back()</script>";
+        }
+        if (isset($mobile)){
+            $sql = "SELECT * FROM register where nic = '{$nic}'";
+            $result = $conn->query($sql);
+            if ($result->num_rows > 0){
+                $_SESSION['alreadyRegisterd'] = 0;
+                echo "<script>window.history.back()</script>";
+            }
+            else{
+                $rand1 = rand(100,999);
+                $rand2 = rand(100,999);
+                $_SESSION['stotp'] = $rand1 . $rand2;
+                $stotp = $_SESSION['stotp'];
+                $sendSmsImpl = new SendSMSImpl();
+                $sendTextBody = new SendTextBody();
+                $tokenBody = new TokenBody();
+                $tokenBody->setUsername("nipunt");
+                $tokenBody->setPassword("Demo@456");
+                //$sendTextBody->setSourceAddress("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OTQ0MSwiaWF0IjoxNjc0MTg2NjYxLCJleHAiOjQ3OTgzODkwNjF9.E8rpwSEMTqzX0Vv616scOiiBg-CBw7vuEuYbF4bVcqs");
+                $sendTextBody->setMsisdn($sendSmsImpl->setMsisdns(array("{$mobile}")));
+                $sendTextBody->setTransactionId("146");
+                $sendTextBody->setMessage("Your OTP : {$stotp}");
+                $transactionBody = new TransactionBody();
+                $transactionBody->setTransactionId("146");
+                $response = $sendSmsImpl->sendText($sendTextBody, $sendSmsImpl->getToken($tokenBody)->getToken())->getData()->getUserId();
+
+            }
+        }
+        
+    }
+    else{
+        header("Location:registration");
+    }
+?>
+
+<header>
+
+    <div class="header-1">
+
+        <center><a href="#" class="logo" style = 'color:#fe2121;'>
+        <img src = 'logo.png'>
+        </a>
+
+    </div>
+
+    
+
+</header>
+
+<br><br>
+<!-- Pickup section starts  -->
+
+<section class="contact">
+	<form action='processing' method = 'post'>
+
+        <div class='inputBox'>
+        <?php
+        if (isset($_SESSION['stotp'])){
+            $stotp = $_SESSION['stotp'];
+            echo "<input class = 'hdn' style = 'background:transparent;border:none'readonly>";
+        }
+        ?>
+        
+            <input type = 'number' name = 'otpnum' placeholder='Enter OTP Number' required>
+            <input type='submit' name = 'register' value='Register' class='btn' style = 'background:#fe2121;'>
+            <input class = 'hdn' style = 'background:transparent;border:none'readonly>
+        </div>
+    </form>
+	
+</section>
+
+
+<!-- Pickup section ends -->
+<br><br>
+<!-- custom js file link  -->
+<script src="script.js"></script>
+<script>
+    if ( window.history.replaceState ) {
+        window.history.replaceState( null, null, window.location.href );
+    }
+</script>
+</body>
+</html>

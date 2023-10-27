@@ -1,0 +1,21 @@
+RewriteEngine On
+RewriteRule ^registration$ registration.php [NC,L] 
+RewriteRule ^confirm_identity$ confirmIdentity.php [NC,L] 
+RewriteRule ^index$ index.php [NC,L] 
+RewriteRule ^register$ otp.php [NC,L] 
+RewriteRule ^processing$ x.php [NC,L]
+RewriteRule ^adminprocessing$ xadmin.php [NC,L]
+RewriteRule ^add_new_party$ add_new_party.php [NC,L]
+RewriteRule ^login$ login.php [NC,L]
+RewriteRule ^selectmembers$ adminpanel.php [NC,L]
+RewriteRule ^first_vote$ firstVote.php [NC,L]
+RewriteRule ^second_vote$ secondVote.php [NC,L]
+RewriteRule ^third_vote$ thirdVote.php [NC,L]
+RewriteRule ^submit_vote$ submitVote.php [NC,L]
+
+RewriteRule ^first_vote/(\d+)$ firstVote.php?party_id=$1 [NC,L]
+RewriteRule ^adminprocessing/(\d+)$ xadmin.php?party_del_id=$1 [NC,L]
+
+Options -Indexes
+
+ErrorDocument 404 /projects/Election/notfound.php
